@@ -11,7 +11,10 @@ import { createDeviceProvider } from "../providers";
 import { WorkerInfoStore } from "./workerInfo";
 import { stopAppiumServer } from "../providers/appium";
 
-type TestLevelFixtures = {
+// Export the base test for custom extensions
+export { test as baseTest } from "@playwright/test";
+
+export type TestLevelFixtures = {
   /**
    * Device provider to be used for the test.
    * This creates and manages the device lifecycle for the test
@@ -26,9 +29,21 @@ type TestLevelFixtures = {
   device: Device;
 };
 
-type WorkerLevelFixtures = {
+export type WorkerLevelFixtures = {
   persistentDevice: Device;
 };
+
+/**
+ * Helper function to extend Appwright test with custom fixtures
+ * This includes all the base Appwright fixtures (device, deviceProvider, persistentDevice)
+ * plus any additional custom fixtures you define.
+ */
+export function extendTest<
+  T extends Record<string, any> = {},
+  W extends Record<string, any> = {}
+>(customFixtures: Parameters<typeof test.extend<TestLevelFixtures & T, WorkerLevelFixtures & W>>[0]) {
+  return test.extend<TestLevelFixtures & T, WorkerLevelFixtures & W>(customFixtures);
+}
 
 export const test = base.extend<TestLevelFixtures, WorkerLevelFixtures>({
   deviceProvider: async ({}, use, testInfo) => {
